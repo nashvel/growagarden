@@ -1,0 +1,57 @@
+{
+    "source": "vulcanvalues.com",
+    "seeds": [
+        {
+            "name": "Carrot",
+            "stock": 6
+        },
+        {
+            "name": "Strawberry",
+            "stock": 6
+        },
+        {
+            "name": "Blueberry",
+            "stock": 2
+        },
+        {
+            "name": "Tomato",
+            "stock": 2
+        }
+    ],
+    "gear": [
+        {
+            "name": "Watering Can",
+            "stock": 2
+        },
+        {
+            "name": "Trowel",
+            "stock": 2
+        },
+        {
+            "name": "Recall Wrench",
+            "stock": 2
+        },
+        {
+            "name": "Favorite Tool",
+            "stock": 3
+        },
+        {
+            "name": "Harvest Tool",
+            "stock": 1
+        }
+    ],
+    "eggs": [
+        {
+            "name": "Common Egg",
+            "stock": 1
+        },
+        {
+            "name": "Common Egg",
+            "stock": 1
+        },
+        {
+            "name": "Common Egg",
+            "stock": 1
+        }
+    ]
+}

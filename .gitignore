@@ -1,0 +1,35 @@
+# Android Studio/IntelliJ
+.idea/
+*.iml
+build/
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Heap Dumps
+*.hprof
+
+# Log files
+*.log
+
+# Gradle
+.gradle/
+caches/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (if you ever add them, keep the actual file private)
+# google-services.json 
+
+# Local native build output
+obj/
+libs/
+
+# Android Studio profiling data
+*.snapshot
+captures/

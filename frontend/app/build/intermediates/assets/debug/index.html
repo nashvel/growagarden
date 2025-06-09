@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Glow a Garden Notifier</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0e5ec; /* Light greyish-blue, common for neomorphism */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .neumorphic-card {
+            background-color: #e0e5ec;
+            border-radius: 20px; /* Rounded corners */
+            padding: 30px;
+            box-shadow: 
+                /* Light shadow (top-left) */
+                -7px -7px 15px rgba(255, 255, 255, 0.8),
+                /* Dark shadow (bottom-right) */
+                7px 7px 15px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .neumorphic-card h1 {
+            color: #4CAF50; /* Your app's primary green */
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .neumorphic-card p {
+            line-height: 1.7;
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        
+        .neumorphic-card ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .neumorphic-card ul li {
+            margin-bottom: 8px;
+            font-size: 1em;
+            color: #666;
+        }
+
+        .footer-text {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #777;
+            display: flex; /* To align text and icon */
+            justify-content: center; /* Center items */
+            align-items: center; /* Vertically align items */
+            flex-wrap: wrap; /* Allow wrapping if needed */
+        }
+        .social-link svg {
+            width: 18px; /* Adjust size */
+            height: 18px; /* Adjust size */
+            fill: #3b5998; /* Facebook blue */
+            vertical-align: middle; /* Align with text */
+            margin-left: 5px; /* Space from "nacht" */
+            transition: transform 0.2s ease-in-out;
+        }
+        .social-link:hover svg {
+            transform: scale(1.1); /* Slight zoom on hover */
+        }
+        .developer-name {
+             margin-right: 5px; /* Space before the icon */
+        }
+        .gardening-text {
+            width: 100%; /* Make it take full width to appear on next line */
+            margin-top: 5px; /* Space from developer line */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="neumorphic-card">
+            <h1>Glow a Garden Notifier</h1>
+            <p>Your friendly companion for staying up-to-date with the latest stock in Glow a Garden!</p>
+            
+            <h2>Key Features:</h2>
+            <ul>
+                <li>🌱 Real-time Seed Shop updates</li>
+                <li>⚙️ Current Gear offerings</li>
+                <li>🥚 Latest Pet (Egg) availability</li>
+                <li>⏱️ Countdown timers for restocks</li>
+                <li>🎨 Tier-based item coloring</li>
+            </ul>
+
+            <div class="footer-text">
+                <span class="developer-name">Developed by nacht</span>
+                <a href="https://www.facebook.com/github.nashvel" target="_blank" title="nacht on Facebook" class="social-link">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2.03998C6.48 2.03998 2 6.51998 2 12.03C2 17.05 5.66 21.21 10.44 21.9V14.89H7.9V12.03H10.44V9.85C10.44 7.33 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.03H16.34L15.89 14.89H13.56V21.9C18.34 21.21 22 17.05 22 12.03C22 6.51998 17.52 2.03998 12 2.03998Z"/>
+                    </svg>
+                </a>
+                <span class="gardening-text"><em>Happy Gardening!</em></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

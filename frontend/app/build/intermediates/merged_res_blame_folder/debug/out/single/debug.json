@@ -1,0 +1,38 @@
+[
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\drawable_icon.png.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\drawable\\icon.png"
+    },
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\drawable_nacht.jpg.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\drawable\\nacht.jpg"
+    },
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "com.glowagarden.stocknotifier.app-merged_res-58:/xml_provider_paths.xml.flat",
+        "source": "com.glowagarden.stocknotifier.app-main-60:/xml/provider_paths.xml"
+    },
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\drawable-v24_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\drawable-v24\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-merged_res-58:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.10\\com.glowagarden.stocknotifier.app-main-60:\\drawable\\ic_launcher_background.xml"
+    }
+]
