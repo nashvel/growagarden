@@ -62,6 +62,13 @@ import retrofit2.http.Url
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import com.glowagarden.stocknotifier.worker.StockCheckWorker // For NOTIFICATION_CHANNEL_ID and scheduling
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
+import android.content.Context
 // import com.glowagarden.stocknotifier.BuildConfig
 
 // Version Config URL
@@ -99,6 +106,8 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        createNotificationChannel() // Called once
+        scheduleStockCheckWorker()
         setContent {
             // Version Check State - Temporarily Commented Out
             /*
@@ -265,4 +274,39 @@ class MainActivity : ComponentActivity() {
             } // Closes GlowAGardenStockNotifierTheme
         } // Closes setContent
     } // Closes onCreate
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = getString(R.string.notification_channel_name) 
+            val descriptionText = getString(R.string.notification_channel_description)
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            // Use the StockCheckWorker.NOTIFICATION_CHANNEL_ID
+            val channel = NotificationChannel(com.glowagarden.stocknotifier.worker.StockCheckWorker.NOTIFICATION_CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+            Log.d("MainActivity", "Notification channel created: ${com.glowagarden.stocknotifier.worker.StockCheckWorker.NOTIFICATION_CHANNEL_ID}")
+        } else {
+            Log.d("MainActivity", "Notification channel not needed for this API level.")
+        }
+    }
+
+    private fun scheduleStockCheckWorker() {
+        val workRequest = PeriodicWorkRequestBuilder<StockCheckWorker>(
+            1, TimeUnit.HOURS // Repeat interval: 1 hour
+            // You can add constraints here, e.g., network connected, battery not low, etc.
+            // .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+        ).build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "StockCheckWorkerPeriodic", // A unique name for this work
+            androidx.work.ExistingPeriodicWorkPolicy.KEEP, // Or REPLACE if you want to update the worker
+            workRequest
+        )
+        Log.d("MainActivity", "StockCheckWorker scheduled to run periodically.")
+    }
 } // Closes MainActivity class

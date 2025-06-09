@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GAG Notifier</string>
+    <string name="notification_channel_name">Stock Alerts</string>
+    <string name="notification_channel_description">Notifications for when your preferred items are back in stock.</string>
 </resources>

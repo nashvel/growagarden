@@ -122,9 +122,9 @@ fun NeumorphicButton(
 
 @Composable
 fun PreferenceScreen(viewModel: StockViewModel, onNavigateToStockScreen: () -> Unit) {
-    var cropsExpanded by remember { mutableStateOf(false) }
-    var gearExpanded by remember { mutableStateOf(false) }
-    var petsExpanded by remember { mutableStateOf(false) }
+    var cropsExpanded by remember { mutableStateOf(true) } // Expanded by default
+    var gearExpanded by remember { mutableStateOf(true) } // Expanded by default
+    var petsExpanded by remember { mutableStateOf(true) } // Expanded by default
     val cropPreferences by viewModel.cropPreferences.collectAsState()
     val gearPreferences by viewModel.gearPreferences.collectAsState()
     val petPreferences by viewModel.petPreferences.collectAsState()

@@ -23,7 +23,7 @@ class StockViewModel(private val userPreferencesRepository: UserPreferencesRepos
     // Example for local XAMPP/MAMP server with script in 'glowagarden_backend' folder:
     // "http://10.0.2.2/glowagarden_backend/" (10.0.2.2 is for Android Emulator)
     // "http://YOUR_PC_IP_ADDRESS/glowagarden_backend/" (for physical device on same Wi-Fi)
-    private val BASE_URL = "http://192.168.1.46/glowagarden/backend/" // <-- CHANGE THIS
+    private val BASE_URL = "https://nacht.infy.uk/" // Live server URL
 
     private val _stockData = MutableStateFlow<StockResponse?>(null)
     val stockData: StateFlow<StockResponse?> = _stockData

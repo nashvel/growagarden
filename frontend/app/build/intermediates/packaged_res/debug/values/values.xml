@@ -3,6 +3,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <string name="app_name">GAG Notifier</string>
+    <string name="notification_channel_description">Notifications for when your preferred items are back in stock.</string>
+    <string name="notification_channel_name">Stock Alerts</string>
     <style name="Theme.GlowAGardenStockNotifier" parent="android:Theme.Material.Light.NoActionBar">
         
     </style>
