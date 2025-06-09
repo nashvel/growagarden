@@ -1,6 +1,12 @@
 package com.glowagarden.stocknotifier.ui
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import java.io.IOException
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -60,20 +66,7 @@ fun StockScreen(stockViewModel: StockViewModel = viewModel()) {
     }
 
     Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Grow a Garden Stock") },
-                actions = {
-                    IconButton(onClick = { stockViewModel.fetchStockData() }, enabled = !isLoading) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+        // topBar removed to rely on MainActivity's TopAppBar
     ) { paddingValues ->
         Box(modifier = Modifier
             .fillMaxSize()
@@ -225,6 +218,11 @@ fun StockCategoryCard(
     }
 }
 
+// Helper function to generate image filename (copied from PreferenceScreen.kt)
+private fun getItemImageFileName(itemName: String): String {
+    return itemName.replace(" ", "").lowercase() + ".png"
+}
+
 // Helper data class for tier styling
 data class TierStyle(val prefix: String, val color: Color, val isPrismatic: Boolean = false)
 
@@ -253,6 +251,32 @@ fun StockItemRow(item: StockItem) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Image loading logic (similar to PreferenceScreen)
+        val context = LocalContext.current
+        val imageBitmap = remember(item.name, context) {
+            try {
+                val imageFileName = getItemImageFileName(item.name)
+                context.assets.open("images/$imageFileName").use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                }
+            } catch (e: IOException) {
+                Log.e("StockScreen", "Error loading image for ${item.name} (assets/images/${getItemImageFileName(item.name)}): ${e.message}")
+                null
+            }
+        }
+
+        if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = "${item.name} icon",
+                modifier = Modifier.size(32.dp)
+            )
+        } else {
+            Box(modifier = Modifier.size(32.dp).background(Color.Gray.copy(alpha = 0.1f)))
+        }
+
+        Spacer(modifier = Modifier.width(8.dp)) // Spacer between image and text
+
         val tierStyle = getTierStyle(item.tier)
         val itemName = "${tierStyle.prefix}${item.name}"
 

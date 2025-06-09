@@ -9,6 +9,7 @@ import com.glowagarden.stocknotifier.model.SelectableItem
 import com.glowagarden.stocknotifier.network.ApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -37,7 +38,11 @@ class StockViewModel(private val userPreferencesRepository: UserPreferencesRepos
     val cropPreferences: StateFlow<List<SelectableItem>> = _cropPreferences
 
     private val _gearPreferences = MutableStateFlow<List<SelectableItem>>(emptyList())
-    val gearPreferences: StateFlow<List<SelectableItem>> = _gearPreferences
+    val gearPreferences: StateFlow<List<SelectableItem>> = _gearPreferences.asStateFlow()
+
+    // StateFlow for selected notification sound
+    private val _selectedNotificationSound = MutableStateFlow("default.mp3") // Default value
+    val selectedNotificationSound: StateFlow<String> = _selectedNotificationSound.asStateFlow()
 
     private val _petPreferences = MutableStateFlow<List<SelectableItem>>(emptyList())
     val petPreferences: StateFlow<List<SelectableItem>> = _petPreferences
@@ -62,12 +67,18 @@ class StockViewModel(private val userPreferencesRepository: UserPreferencesRepos
             .build()
 
         apiService = retrofit.create(ApiService::class.java)
-        // Initialize preferences after loading saved ones
-        viewModelScope.launch { // Launch coroutine to load preferences
+        viewModelScope.launch {
             initializePreferences()
-            fetchStockData() // Fetch stock data after preferences are potentially updated
-        } // Corrected closing brace for viewModelScope.launch
-    } // Closing brace for init block
+            fetchStockData() // Initial fetch
+        }
+
+        // Load and observe selected notification sound
+        viewModelScope.launch {
+            userPreferencesRepository.selectedNotificationSound.collect { sound ->
+                _selectedNotificationSound.value = sound
+            }
+        }
+    }
 
     fun fetchStockData() {
         viewModelScope.launch {
@@ -118,7 +129,7 @@ class StockViewModel(private val userPreferencesRepository: UserPreferencesRepos
             SelectableItem("Ember Lily", "Prismatic", "Crop")
         )
         _cropPreferences.value = allCrops
-            .filter { it.tier == "Legendary" || it.tier == "Mythical" }
+            .filter { it.tier == "Legendary" || it.tier == "Mythical" || it.tier == "Divine" || it.tier == "Prismatic" }
             .map { it.copy(initialIsSelected = savedItemNames.contains(it.name)) }
 
         _gearPreferences.value = listOf<SelectableItem>(
@@ -126,21 +137,21 @@ class StockViewModel(private val userPreferencesRepository: UserPreferencesRepos
             SelectableItem("Trowel", "Uncommon", "Gear"),
             SelectableItem("Recall Wrench", "Uncommon", "Gear"),
             SelectableItem("Basic Sprinkler", "Rare", "Gear"),
-            SelectableItem("Advance Sprinkler", "Legendary", "Gear"),
+            SelectableItem("Advanced Sprinkler", "Legendary", "Gear"),
             SelectableItem("Godly Sprinkler", "Mythical", "Gear"),
             SelectableItem("Lightning Rod", "Mythical", "Gear"),
             SelectableItem("Master Sprinkler", "Divine", "Gear"),
-            SelectableItem("Harvesting Tool", "Divine", "Gear"),
+            SelectableItem("Harvest Tool", "Divine", "Gear"),
             SelectableItem("Favorite Tool", "Divine", "Gear")
         ).map { it.copy(initialIsSelected = savedItemNames.contains(it.name)) }
 
         _petPreferences.value = listOf(
-            SelectableItem("Common Pet", "Common", "Pet"),
-            SelectableItem("Uncommon Pet", "Uncommon", "Pet"),
-            SelectableItem("Rare Pet", "Rare", "Pet"),
-            SelectableItem("Legendary Pet", "Legendary", "Pet"),
-            SelectableItem("Mythical Pet", "Mythical", "Pet"),
-            SelectableItem("Bug Pet", "Bug", "Pet") // Assuming 'Bug' is a tier/type
+            SelectableItem("Common Egg", "Common", "Pet"),
+            SelectableItem("Uncommon Egg", "Uncommon", "Pet"),
+            SelectableItem("Rare Egg", "Rare", "Pet"),
+            SelectableItem("Legendary Egg", "Legendary", "Pet"),
+            SelectableItem("Mythical Egg", "Mythical", "Pet"),
+            SelectableItem("Bug Egg", "Bug", "Pet") // Assuming 'Bug' is a tier/type
         ).map { it.copy(initialIsSelected = savedItemNames.contains(it.name)) }
     }
 
@@ -164,4 +175,11 @@ class StockViewModel(private val userPreferencesRepository: UserPreferencesRepos
             userPreferencesRepository.saveSelectedItems(selectedItems)
         }
     } // Closing brace for saveUserSelections
+
+    fun saveSelectedNotificationSound(soundFileName: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.saveSelectedNotificationSound(soundFileName)
+            // _selectedNotificationSound.value will be updated by the flow collection in init
+        }
+    }
 } // Closing brace for StockViewModel class

@@ -1,5 +1,12 @@
 package com.glowagarden.stocknotifier.ui
 
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.BitmapFactory
+import java.io.IOException
+import android.util.Log
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -42,6 +49,12 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.foundation.shape.CircleShape // For circular image
 import com.glowagarden.stocknotifier.R // For R.drawable.icon
 import com.glowagarden.stocknotifier.model.SelectableItem
+// import androidx.compose.ui.graphics.Color // Ensure Color is imported - Removed duplicate
+
+// Helper function to generate image filename from item name
+private fun getItemImageFileName(itemName: String): String {
+    return itemName.replace(" ", "").lowercase() + ".png"
+}
 
 @Composable
 fun NeumorphicButton(
@@ -51,9 +64,11 @@ fun NeumorphicButton(
     icon: ImageVector? = null, // Optional icon parameter
     cornerRadius: Dp = 16.dp, 
     shadowElevation: Dp = 8.dp, // Refined Neumorphic elevation
-    paddingValues: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 16.dp) 
+    paddingValues: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+    buttonBackgroundColor: Color = MaterialTheme.colorScheme.background, // New parameter
+    contentColor: Color = MaterialTheme.colorScheme.onSurface // New parameter
 ) {
-    val surfaceColor = MaterialTheme.colorScheme.background
+    val surfaceColor = buttonBackgroundColor
     val isDarkTheme = isSystemInDarkTheme()
 
     val lightShadowColor: Color
@@ -91,7 +106,7 @@ fun NeumorphicButton(
                 Icon(
                     imageVector = it,
                     contentDescription = null, // Decorative
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = contentColor, // Use new contentColor parameter
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -99,7 +114,7 @@ fun NeumorphicButton(
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = contentColor // Use new contentColor parameter
             )
         }
     }
@@ -183,7 +198,7 @@ fun PreferenceScreen(viewModel: StockViewModel, onNavigateToStockScreen: () -> U
         // Crops Section
         item {
             PreferenceSectionHeader(
-                title = "Notify me for these CROP stocks (Legendary & Mythical only):",
+                title = "Notify me for these CROP stocks (Legendary above only):",
                 icon = Icons.Filled.Spa,
                 expanded = cropsExpanded,
                 onToggle = {
@@ -262,20 +277,23 @@ fun PreferenceScreen(viewModel: StockViewModel, onNavigateToStockScreen: () -> U
             ) {
                 // First line: Beta warning
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp, horizontal = 16.dp)
+                        .background(Color(0xFFFFF3E0), shape = RoundedCornerShape(8.dp)) // Light Orange Background
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Info,
-                        contentDescription = "Disclaimer Information",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
+                        contentDescription = "Information",
+                        tint = Color(0xFFE65100) // Dark Orange Icon
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Beta: Data ~20s delay.",
+                        text = "Beta: Data ~20s delay. Prices and stock may vary slightly.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFFE65100) // Dark Orange Text
                     )
                 }
 
@@ -292,8 +310,10 @@ fun PreferenceScreen(viewModel: StockViewModel, onNavigateToStockScreen: () -> U
                         onNavigateToStockScreen()      // Then navigate
                     },
                     text = "Save and View Stocks",
-                    icon = Icons.Filled.CheckCircle
-                    // No fillMaxWidth modifier here, so button takes its natural width
+                    icon = Icons.Filled.CheckCircle,
+                    modifier = Modifier.fillMaxWidth(),
+                    buttonBackgroundColor = Color(0xFF4CAF50), // Green background
+                    contentColor = Color.White // White text/icon for contrast
                 )
             }
             Spacer(modifier = Modifier.height(24.dp)) // Extra space at the bottom
@@ -309,7 +329,8 @@ fun PreferenceSectionHeader(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier, 
     cornerRadius: Dp = 12.dp, 
-    shadowElevation: Dp = 8.dp // Refined Neumorphic elevation
+    shadowElevation: Dp = 8.dp, // Refined Neumorphic elevation
+    titleColor: Color = MaterialTheme.colorScheme.primary // New parameter for title color
 ) {
     val surfaceColor = MaterialTheme.colorScheme.background
     val isDarkTheme = isSystemInDarkTheme()
@@ -361,9 +382,9 @@ fun PreferenceSectionHeader(
             }
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.weight(1f),
+                color = titleColor // Use new titleColor parameter
             )
             Icon(
                 imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
@@ -427,18 +448,50 @@ fun SelectableItemRow(
                 )
                 .background(surfaceColor, RoundedCornerShape(cornerRadius))
         )
+        val context = LocalContext.current
+        val imageBitmap = remember(item.name, context) {
+            try {
+                val imageFileName = getItemImageFileName(item.name)
+                context.assets.open("images/$imageFileName").use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                }
+            } catch (e: IOException) {
+                Log.e("PreferenceScreen", "Error loading image for ${item.name} (assets/images/${getItemImageFileName(item.name)}): ${e.message}")
+                null
+            }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = "${item.name} icon",
+                    modifier = Modifier.size(32.dp)
+                )
+            } else {
+                // Display a placeholder Box to maintain layout consistency if image fails to load
+                Box(modifier = Modifier.size(32.dp).background(Color.Gray.copy(alpha = 0.1f))) // Optional: placeholder visual
+            }
+            Spacer(modifier = Modifier.width(12.dp)) // Space between image/placeholder and text
+
             Text(
                 text = item.name,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
+            Spacer(modifier = Modifier.width(8.dp)) // Space before the tier text
+            Text(
+                text = item.tier,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = getColorForTier(item.tier) // Apply color here
+            )
+            Spacer(modifier = Modifier.width(8.dp)) // Space after the tier text
             Checkbox(
                 checked = item.isSelected,
                 onCheckedChange = { onToggle(item) },

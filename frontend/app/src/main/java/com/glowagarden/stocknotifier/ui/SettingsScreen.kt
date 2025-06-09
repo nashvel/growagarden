@@ -14,8 +14,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.DisposableEffect
+import android.media.MediaPlayer
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,9 +43,21 @@ import android.provider.Settings
 import com.glowagarden.stocknotifier.R // Assuming nacht.jpg is in res/drawable
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(stockViewModel: StockViewModel) { // Added stockViewModel parameter
     var preventClosing by remember { mutableStateOf(false) }
+    var showSoundDialog by remember { mutableStateOf(false) }
+    val selectedSound by stockViewModel.selectedNotificationSound.collectAsState()
+    val mediaPlayer = remember { MediaPlayer() }
     val context = LocalContext.current
+
+    val soundOptions = mapOf(
+        "default.mp3" to "Default",
+        "Raining Tacos.mp3" to "Raining Tacos",
+        "cat-laugh-meme-1.mp3" to "Cat Laugh Meme",
+        "notification2.mp3" to "Notification Sound 2",
+        "notification3.mp3" to "Notification Sound 3",
+        "notification4.mp3" to "Notification Sound 4"
+    )
 
     Column(
         modifier = Modifier
@@ -54,10 +72,10 @@ fun SettingsScreen() {
             painter = painterResource(id = R.drawable.icon), // Make sure icon.png is in res/drawable
             contentDescription = "App Logo",
             modifier = Modifier
-                .fillMaxWidth(0.3f) // Reduced size from 0.5f
-                .aspectRatio(1f)    // Adjust aspect ratio as needed
+                .fillMaxWidth(0.2f) // Further reduced size to 20% of screen width
+                .aspectRatio(1f)    // Maintain square aspect ratio
                 .clip(MaterialTheme.shapes.medium),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Fit // Change to Fit to prevent cropping
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -77,6 +95,12 @@ fun SettingsScreen() {
                         intent.data = uri
                         context.startActivity(intent)
                     }
+                )
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                SettingsItemRow(
+                    title = "Notification Sound",
+                    subtitle = soundOptions[selectedSound] ?: selectedSound, // Display friendly name or filename
+                    onClick = { showSoundDialog = true }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsItemRowSwitch(
@@ -123,10 +147,85 @@ fun SettingsScreen() {
             }
         }
     }
+
+    // Release MediaPlayer when the composable is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer.release()
+        }
+    }
+
+    if (showSoundDialog) {
+        AlertDialog(
+            onDismissRequest = { showSoundDialog = false },
+            title = { Text("Select Notification Sound") },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    soundOptions.forEach { (fileName, displayName) ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { 
+                                    stockViewModel.saveSelectedNotificationSound(fileName)
+                                    try {
+                                        mediaPlayer.reset()
+                                        val assetManager = context.assets
+                                        val descriptor = assetManager.openFd("sounds/$fileName")
+                                        mediaPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+                                        descriptor.close()
+                                        mediaPlayer.prepare()
+                                        mediaPlayer.start()
+                                        mediaPlayer.setOnCompletionListener { mp -> mp.reset() }
+                                    } catch (e: Exception) {
+                                        android.util.Log.e("SettingsScreen", "Error playing sound preview: $fileName", e)
+                                        // Optionally show a toast or log the error
+                                    }
+                                    // showSoundDialog = false // Optionally close dialog on selection
+                                }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (fileName == selectedSound),
+                                onClick = { 
+                                    stockViewModel.saveSelectedNotificationSound(fileName)
+                                    try {
+                                        mediaPlayer.reset()
+                                        val assetManager = context.assets
+                                        val descriptor = assetManager.openFd("sounds/$fileName")
+                                        mediaPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+                                        descriptor.close()
+                                        mediaPlayer.prepare()
+                                        mediaPlayer.start()
+                                        mediaPlayer.setOnCompletionListener { mp -> mp.reset() }
+                                    } catch (e: Exception) {
+                                        android.util.Log.e("SettingsScreen", "Error playing sound preview: $fileName", e)
+                                    }
+                                    // showSoundDialog = false // Optionally close dialog on selection
+                                }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(displayName)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSoundDialog = false }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSoundDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun SettingsItemRow(title: String, onClick: () -> Unit) {
+fun SettingsItemRow(title: String, subtitle: String? = null, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -135,7 +234,12 @@ fun SettingsItemRow(title: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            if (subtitle != null) {
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         Icon(Icons.Filled.ChevronRight, contentDescription = "Navigate")
     }
 }

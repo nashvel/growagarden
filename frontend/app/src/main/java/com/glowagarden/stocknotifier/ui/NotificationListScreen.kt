@@ -16,13 +16,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import com.glowagarden.stocknotifier.model.SelectableItem
+import androidx.compose.foundation.isSystemInDarkTheme
+// import androidx.compose.material3.MaterialTheme // Already imported above or via ColorUtils
+import androidx.compose.ui.graphics.Color
+// import androidx.compose.material3.pullrefresh.PullRefreshIndicator // Keep commented
+// import androidx.compose.material3.pullrefresh.pullRefresh // Keep commented
+// import androidx.compose.material3.pullrefresh.rememberPullRefreshState // Keep commented
+// import androidx.compose.material3.ExperimentalMaterial3Api // Keep commented
 
+// @OptIn(ExperimentalMaterial3Api::class) // Keep commented
 @Composable
 fun NotificationListScreen(
     stockViewModel: StockViewModel,
     onManageSelectionsClick: () -> Unit
 ) {
-        val cropPreferences by stockViewModel.cropPreferences.collectAsState()
+    val cropPreferences by stockViewModel.cropPreferences.collectAsState()
     val gearPreferences by stockViewModel.gearPreferences.collectAsState()
     val petPreferences by stockViewModel.petPreferences.collectAsState()
 
@@ -30,6 +38,9 @@ fun NotificationListScreen(
     val selectedGear = gearPreferences.filter { it.isSelected }
     val selectedPets = petPreferences.filter { it.isSelected }
     val totalSelectedItems = selectedCrops.size + selectedGear.size + selectedPets.size
+
+    // val isRefreshing by stockViewModel.isLoading.collectAsState() // Keep commented
+    // val pullRefreshState = rememberPullRefreshState(refreshing = isRefreshing, onRefresh = { stockViewModel.fetchStockData() }) // Keep commented
 
     Column(
         modifier = Modifier
@@ -43,59 +54,74 @@ fun NotificationListScreen(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        if (totalSelectedItems == 0) {
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "You are not tracking any items yet.\nClick 'Manage Selections' to choose items.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                // .pullRefresh(pullRefreshState) // Keep pull-to-refresh commented
+        ) {
+            if (totalSelectedItems == 0) {
+                Box(
+                    modifier = Modifier.fillMaxSize(), // Fill the parent pull-refresh Box
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "You are not tracking any items yet.\nClick 'Manage Selections' to choose items.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize() // Fill the parent pull-refresh Box
+                ) {
+                    // Seeds Section
+                    if (selectedCrops.isNotEmpty()) {
+                        item {
+                            Text("Seeds", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
+                        }
+                        items(selectedCrops, key = { "crop-" + it.name + it.category }) { item ->
+                            SelectedNotificationItemRow(item = item)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        item { Spacer(modifier = Modifier.height(16.dp)) } // Space after section
+                    }
+
+                    // Gear Section
+                    if (selectedGear.isNotEmpty()) {
+                        item {
+                            Text("Gear", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
+                        }
+                        items(selectedGear, key = { "gear-" + it.name + it.category }) { item ->
+                            SelectedNotificationItemRow(item = item)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        item { Spacer(modifier = Modifier.height(16.dp)) } // Space after section
+                    }
+
+                    // Pets Section
+                    if (selectedPets.isNotEmpty()) {
+                        item {
+                            Text("Pets", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
+                        }
+                        items(selectedPets, key = { "pet-" + it.name + it.category }) { item ->
+                            SelectedNotificationItemRow(item = item)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth()
-            ) {
-                // Seeds Section
-                if (selectedCrops.isNotEmpty()) {
-                    item {
-                        Text("Seeds", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
-                    }
-                    items(selectedCrops, key = { "crop-" + it.name + it.category }) { item ->
-                        SelectedNotificationItemRow(item = item)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    item { Spacer(modifier = Modifier.height(16.dp)) } // Space after section
-                }
+            // PullRefreshIndicator and its comment are within the larger commented Box
+            // TODO: Restore pull-to-refresh
+            // PullRefreshIndicator(
+            //     refreshing = isRefreshing, // Keep commented
+            //     state = pullRefreshState, // Keep commented
+            //     modifier = Modifier.align(Alignment.TopCenter)
+            // )
+            // End of PullRefreshIndicator related code
+        } // This closes the Box
 
-                // Gear Section
-                if (selectedGear.isNotEmpty()) {
-                    item {
-                        Text("Gear", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
-                    }
-                    items(selectedGear, key = { "gear-" + it.name + it.category }) { item ->
-                        SelectedNotificationItemRow(item = item)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    item { Spacer(modifier = Modifier.height(16.dp)) } // Space after section
-                }
-
-                // Pets Section
-                if (selectedPets.isNotEmpty()) {
-                    item {
-                        Text("Pets", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
-                    }
-                    items(selectedPets, key = { "pet-" + it.name + it.category }) { item ->
-                        SelectedNotificationItemRow(item = item)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp)) // Spacer before the button
 
         NeumorphicButton(
             onClick = onManageSelectionsClick,
@@ -121,6 +147,10 @@ fun SelectedNotificationItemRow(item: SelectableItem) {
             Text(text = item.name, style = MaterialTheme.typography.titleMedium)
             Text(text = "Category: ${item.category}", style = MaterialTheme.typography.bodySmall)
         }
-        Text(text = item.tier, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+        Text(
+            text = item.tier, 
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            color = getColorForTier(item.tier)
+        )
     }
 }

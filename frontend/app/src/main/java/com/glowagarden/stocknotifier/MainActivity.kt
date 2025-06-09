@@ -16,10 +16,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Refresh // Added for refresh icon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar // Added for TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.IconButton // Added for IconButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector // Added for BottomNavItem icon type
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -29,7 +34,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -43,6 +50,37 @@ import com.glowagarden.stocknotifier.ui.AppBottomNavigationBar
 import com.glowagarden.stocknotifier.ui.NotificationListScreen
 import com.glowagarden.stocknotifier.ui.SettingsScreen
 import com.glowagarden.stocknotifier.ui.theme.GlowAGardenStockNotifierTheme
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Url
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+// import com.glowagarden.stocknotifier.BuildConfig
+
+// Version Config URL
+// private const val VERSION_CONFIG_URL = "https://gist.githubusercontent.com/nashvel/7079605785ed92d0324a2b20b92a448c/raw/9abbcbc3f3821d94c8a4c8e574f2902f400fb677/version_config.json"
+
+// Data class for version configuration
+/*data class VersionConfig(
+    val minRequiredVersionCode: Int,
+    val updateUrl: String,
+    val deprecationMessage: String,
+    val updateButtonText: String,
+    val dialogTitle: String
+)*/
+
+// Retrofit service interface
+/*interface VersionCheckService {
+    @GET
+    suspend fun getVersionConfig(@Url url: String): VersionConfig
+}*/
 
 // Enum to manage overall app state (initial preferences vs main app)
 enum class AppFlowState {
@@ -58,10 +96,47 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, val title: 
 }
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // Version Check State - Temporarily Commented Out
+            /*
+            var showUpdateDialog by remember { mutableStateOf(false) }
+            var versionConfigData by remember { mutableStateOf<VersionConfig?>(null) }
+            val coroutineScope = rememberCoroutineScope()
+            val contextForIntent = LocalContext.current // For opening URL
+
+            // Retrofit instance for version check
+            val retrofit = remember {
+                Retrofit.Builder()
+                    .baseUrl("https://gist.githubusercontent.com/") // Base URL, actual path in @GET or @Url
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+            }
+            val versionCheckService = remember {
+                retrofit.create(VersionCheckService::class.java)
+            }
+
+            LaunchedEffect(Unit) {
+                coroutineScope.launch {
+                    try {
+                        // val config = versionCheckService.getVersionConfig(VERSION_CONFIG_URL) // Assuming VersionCheckService and VersionConfig are commented out
+                        // val currentVersionCode = com.glowagarden.stocknotifier.BuildConfig.VERSION_CODE // Assumes BuildConfig is available
+                        // if (currentVersionCode < config.minRequiredVersionCode) { // config would be null here
+                        //     versionConfigData = config
+                        //     showUpdateDialog = true
+                        // }
+                        // Log.d("VersionCheck", "Current: $currentVersionCode, MinRequired: ${config.minRequiredVersionCode}")
+                    } catch (e: Exception) {
+                        Log.e("VersionCheck", "Error fetching version config", e)
+                        // Handle error, e.g., allow app to continue or show a less intrusive error
+                    }
+                }
+            }
+            */
                 var useDarkTheme by remember { mutableStateOf(false) } // Will be initialized below
+            val coroutineScope = rememberCoroutineScope() // Moved here for wider access
             useDarkTheme = isSystemInDarkTheme() // Initialize here, inside composable scope
 
             GlowAGardenStockNotifierTheme(darkTheme = useDarkTheme) {
@@ -69,7 +144,12 @@ class MainActivity : ComponentActivity() {
                 val userPreferencesRepository = UserPreferencesRepository(applicationContext)
                 val stockViewModelFactory = StockViewModelFactory(userPreferencesRepository)
                 val stockViewModel: StockViewModel = viewModel(factory = stockViewModelFactory)
-                var currentAppFlowState by remember { mutableStateOf(AppFlowState.InitialPreferences) }
+                
+                // Observe initial setup completion status
+                val initialSetupDone by userPreferencesRepository.initialSetupComplete.collectAsState(initial = false) // Default to false until loaded
+                var currentAppFlowState by remember(initialSetupDone) { 
+                    mutableStateOf(if (initialSetupDone) AppFlowState.MainApp else AppFlowState.InitialPreferences)
+                }
                 var selectedBottomNavItem by remember { mutableStateOf<BottomNavItem>(BottomNavItem.Home) }
 
                 // Context and permission launcher
@@ -107,16 +187,59 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    // if (showUpdateDialog && versionConfigData != null) { // Temporarily commented out
+                    //     AlertDialog(
+                    //         onDismissRequest = { /* Non-dismissible */ },
+                    //         title = { Text(versionConfigData!!.dialogTitle) },
+                    //         text = { Text(versionConfigData!!.deprecationMessage) },
+                    //         confirmButton = {
+                    //             Button(
+                    //                 onClick = {
+                    //                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(versionConfigData!!.updateUrl))
+                    //                     try {
+                    //                         contextForIntent.startActivity(intent)
+                    //                     } catch (e: Exception) {
+                    //                         Log.e("VersionCheck", "Error opening update URL", e)
+                    //                         // Optionally show a toast if URL can't be opened
+                    //                     }
+                    //                 }
+                    //             ) {
+                    //                 Text(versionConfigData!!.updateButtonText)
+                    //             }
+                    //         },
+                    //         dismissButton = null // No dismiss button to make it mandatory
+                    //     )
+                    // } else { // Temporarily making this the main path
                     if (currentAppFlowState == AppFlowState.InitialPreferences) {
                         PreferenceScreen(
                             viewModel = stockViewModel,
                             onNavigateToStockScreen = {
+                                coroutineScope.launch {
+                                    userPreferencesRepository.markInitialSetupComplete()
+                                }
                                 currentAppFlowState = AppFlowState.MainApp
-                                selectedBottomNavItem = BottomNavItem.Home // Default to Home screen after preferences
+                                selectedBottomNavItem = BottomNavItem.Home // Default to Home after prefs
                             }
                         )
                     } else {
                         Scaffold(
+                            topBar = {
+                                TopAppBar(
+                                    title = { Text(text = selectedBottomNavItem.title) }, 
+                                    actions = {
+                                        if (selectedBottomNavItem == BottomNavItem.Home) {
+                                            TextButton(onClick = { stockViewModel.fetchStockData() }) {
+                                                Text("Refresh", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                            }
+                                        }
+                                    },
+                                    colors = TopAppBarDefaults.topAppBarColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            },
                             bottomBar = {
                                 AppBottomNavigationBar(selectedItem = selectedBottomNavItem) {
                                     selectedBottomNavItem = it
@@ -133,14 +256,13 @@ class MainActivity : ComponentActivity() {
                                             currentAppFlowState = AppFlowState.InitialPreferences
                                         }
                                     )
-                                    BottomNavItem.Settings -> SettingsScreen()
+                                    BottomNavItem.Settings -> SettingsScreen(stockViewModel = stockViewModel)
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
+                        } // Closes Scaffold
+                    } // Closes else for currentAppFlowState (if (currentAppFlowState == AppFlowState.InitialPreferences))
+                } // Closes Surface
+            } // Closes GlowAGardenStockNotifierTheme
+        } // Closes setContent
+    } // Closes onCreate
+} // Closes MainActivity class
